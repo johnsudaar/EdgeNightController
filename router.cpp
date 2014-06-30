@@ -113,6 +113,7 @@ void Router::startProcess(int pid){
             this->is_running = true;
             this->ui->setOnScreen(process[pid]->getName());
             socket->writeDatagram(dg,process[pid]->getAddress(),process[pid]->getPort());
+            this->ui->timer->start(1000);
 
         }// is banned
     }// exists
@@ -131,7 +132,6 @@ void Router::stopProcess(){
         }
         if(pid == -1){
             std::cerr<<"[ROUTER] General failure ..."<<std::endl;
-
             exit(EXIT_FAILURE);
         }
         std::cout<<"Stopping process : "<<pid<<std::endl;
@@ -139,6 +139,7 @@ void Router::stopProcess(){
         this->is_running = false;
         this->ui->setOnScreen("None ...");
         socket->writeDatagram(dg,process[pid]->getAddress(),process[pid]->getPort());
+        this->ui->timer->stop();
     }
 
 }
@@ -153,6 +154,7 @@ int Router::getProcessFromName(QString name){
 }
 
 void Router::processInput(QByteArray datagram){
+    this->ui->inputConnected();
     if(datagram[1] == INSTR_IN_INPUT){
         if(datagram[2] == 255 || datagram[3] == 255){
             if(DEBUG)
@@ -195,10 +197,34 @@ void Router::randomGame(){
         game = this->process.begin()->first;
     }else{
         game = rand()%this->process.size()+1;
-        while(this->process.find(game)== this->process.end() && ! this->process.find(game)->second->isActiv()&& ! this->process.find(game)->second->isOnScreen())
+        while(this->process.find(game)== this->process.end() || ! this->process[game]->isActiv() || this->process[game]->isOnScreen())
             game = rand()%this->process.size()+1;
     }
     this->stopProcess();
     this->startProcess(game);
+}
 
+void Router::setDebug(bool d){
+    this->debug_mode = d;
+}
+
+void Router::banProcess(){
+    if(this->is_running){
+        int pid = -1;
+        for(std::map<int,Client*>::iterator it = this->process.begin(); it!= this->process.end(); ++it){
+            if(it->second->isOnScreen())
+                pid = it->first;
+        }
+        if(pid == -1){
+            std::cerr<<"[ROUTER] General failure ..."<<std::endl;
+            exit(EXIT_FAILURE);
+        }
+        std::cerr<<"[ROUTER] Ban process... "<<std::endl;
+        if(! this->debug_mode){
+            this->stopProcess();
+            this->process[pid]->setActiv(false);
+        }
+    }else{
+        std::cerr<<"[ROUTER] No process running ..."<<std::endl;
+    }
 }

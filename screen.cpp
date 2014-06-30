@@ -59,6 +59,8 @@ void Screen::addObject(DisplayableObject* obj){
 
 void Screen::refresh(){
     std::vector<Point> points = this->getPoints();
+    this->ui->addFrame(this->objects.size());
+
     this->ui->drawLines(points);
     if(this->dac)
         this->toDAC(points);

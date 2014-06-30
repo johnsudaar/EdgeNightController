@@ -5,6 +5,9 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    this->timer = new QTimer(this);
+    connect(this->timer, SIGNAL(timeout()), this, SLOT(server_timer()));
+
     ui->setupUi(this);
     this->screen = new Screen(false, this);
     this->router = new Router(this->screen, this);
@@ -95,3 +98,27 @@ void MainWindow::on_pb_rand_clicked()
     this->router->randomGame();
 }
 
+void MainWindow::server_timer(){
+    QString fr = "FPS : "+QString::number(this->frames);
+    if(this->frames < MIN_FPS)
+        this->router->banProcess();
+    this->frames = 0;
+    QString ob = "OPS : "+QString::number(this->objs);
+    this->objs = 0;
+    this->ui->lbl_ops->setText(ob);
+    this->ui->lbl_fps->setText(fr);
+}
+
+void MainWindow::addFrame(int objects){
+    this->frames++;
+    this->objs += objects;
+}
+
+void MainWindow::on_checkBox_clicked()
+{
+    this->router->setDebug(this->ui->cb_debug->isChecked());
+}
+
+void MainWindow::inputConnected(){
+    this->ui->lbl_input->setText("Input Controller : connected");
+}

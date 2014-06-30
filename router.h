@@ -23,6 +23,8 @@ public:
     int getProcessFromName(QString name);
     void stopProcess();
     void randomGame();
+    void banProcess();
+    void setDebug(bool d);
 private:
     Screen* screen;
     std::map<int, Client*> process;
@@ -32,6 +34,7 @@ private:
     bool is_running;
     MainWindow *ui;
     unsigned short cur_id;
+    bool debug_mode = false;
 
 private slots:
     void readDatagram();

@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QTimer>
+
 #include "screen.h"
 #include "router.h"
 #include "client.h"
@@ -29,21 +31,26 @@ public:
     void drawLines(std::vector<Point> points);
     void setPoints(int nb_points);
     void setLength(int length);
-
+    void addFrame(int objects);
+    void inputConnected();
+    QTimer* timer;
 
 private slots:
     void on_pb_dac_clicked();
     void on_pb_launch_clicked();
     void on_pb_stop_clicked();
-
     void on_pb_cal_clicked();
-
     void on_pb_rand_clicked();
+    void server_timer();
+    void on_checkBox_clicked();
+
 private:
     Ui::MainWindow *ui;
     Screen* screen;
     Router* router;
     calibrer *cal;
+    int objs = 0;
+    int frames = 0;
 };
 
 #endif // MAINWINDOW_H

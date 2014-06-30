@@ -1,7 +1,7 @@
 #ifndef CONST_H
 #define CONST_H
 
-#define DEBUG true
+#define DEBUG false
 
 // ************************
 // * HARDWARE LIMITATIONS *
