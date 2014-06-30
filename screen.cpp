@@ -133,6 +133,14 @@ std::vector<Point> Screen::getPoints(){
         }
         points.push_back(this->getNormalizedPoint(end));
     }
+
+    int length = 0;
+
+    for(int i = 1; i<points.size(); i++){
+        length += sqrt(pow(points[i].x - points[i-1].x,2)+pow(points[i].y - points[i-1].y,2));
+    }
+    this->ui->setPoints(points.size());
+    this->ui->setLength(length);
     return points;
 }
 
@@ -162,7 +170,8 @@ Point Screen::addColor(Point base, QByteArray datagram, int offset){
 
 void Screen::fromNetwork(QByteArray datagram){
     if(datagram[1] == (char)INSTR_IN_REFRESH){
-        std::cout<<"[SCREEN] Refresh received ..."<<std::endl;
+        if(DEBUG)
+            std::cout<<"[SCREEN] Refresh received ..."<<std::endl;
         this->refresh();
     }else{
         unsigned short start_x;
@@ -185,7 +194,6 @@ void Screen::fromNetwork(QByteArray datagram){
             end  = Point(end_x, end_y);
             end = this->addColor(end,datagram,10);
             start = this->addColor(start,datagram,10);
-            std::cout<<"[SCREEN] Received line : start = ("<<start_x<<","<<start_y<<") end = ("<<end_x<<","<<end_y<<")"<<std::endl;
             this->addObject(new Line(start,end));
             break;
         case INSTR_IN_RECT:
@@ -219,6 +227,9 @@ void Screen::setPoints(Point p1, Point p2, Point p3, Point p4){
     this->p4 = p4;
 }
 
+/*void Screen::clearFrame(){
+
+}*/
 Point Screen::placePoint(Point p){
     double d1 = 0;
     double d2 = 0;
@@ -256,10 +267,6 @@ Point Screen::placePoint(Point p){
     //unsigned short r_x , r_y;
     unsigned short r_x = (double)p1.x*d1 + (double)p2.x*d2 + (double)p3.x*d3 + (double)p4.x*d4;
     unsigned short r_y = (double)p1.y*d1 + (double)p2.y*d2 + (double)p3.y*d3 + (double)p4.y*d4;
-    std::cout<<"Final : "<<r_x<<","<<r_y<<std::endl;
-    std::cout<<"Base : "<<p.x<<","<<p.y<<std::endl;
-    std::cout<<"Weghts : "<<d1<<","<<d2<<","<<d3<<","<<d4<<std::endl;
-    exit(1);
     r_x = r_x < 65535 ? r_x : 65535;
     r_y = r_y < 65535 ? r_y : 65535;
 

@@ -27,10 +27,6 @@ void Router::readDatagram()
  }
 
 void Router::processDatagram(QByteArray datagram, QHostAddress sender, quint16 port){
-    if(datagram.length() != 24){
-        std::cerr<<"[ROUTER] Datagram malformed (wrong size) ... " <<std::endl;
-        //return;
-    }
     if(datagram.at(0) == 0){
         if(datagram.at(1)==INSTR_IN_HELLO){
             QString name = "";
@@ -40,7 +36,16 @@ void Router::processDatagram(QByteArray datagram, QHostAddress sender, quint16 p
                 else
                     name += datagram.at(i+2);
             }
-            std::cout << "[ROUTER] Hello Received from "<<name.toStdString()<<" (Port : " << port<<")"<<std::endl;
+            if(DEBUG)
+                std::cout << "[ROUTER] Hello Received from "<<name.toStdString()<<" (Port : " << port<<")"<<std::endl;
+            for(std::map<int,Client*>::iterator it = this->process.begin(); it!= this->process.end(); ++it){
+                QString cur_name = it->second->getName();
+                if(cur_name.compare(name) == 0){
+                    if(it->second->isOnScreen())
+                        this->stopProcess();
+                    process.erase(it);
+                }
+            }
             QByteArray dg = QByteArray(2,0);
             dg[0] = INSTR_OUT_ACK;
             dg[1] = ++this->cur_id;
@@ -53,28 +58,38 @@ void Router::processDatagram(QByteArray datagram, QHostAddress sender, quint16 p
             std::cerr<<"[ROUTER] Datagram malformed (id = 0, but not HELLO)"<<std::endl;
         }
     }else{
-        int id = (int)datagram[0];
-        if(process.find(id) == process.end()){ // Si l'id ne fait pas partis des ids enregistrés
-            std::cerr<<"[ROUTER] Not a real id : "<<id<<std::endl;
+        unsigned short id = datagram[0]&0xFF;
+        if(id == 255){
+            if(DEBUG)
+                std::cout<<"[ROUTER] Input controller received"<<std::endl;
+            this->processInput(datagram);
         }else{
-            if(! process.at(id)->isActiv()){ // Si le programme a commis une faute et est banni
-                std::cerr<<"[ROUTER] Message received from "<<id<<" but this program was banned..."<<std::endl;
+            if(process.find(id) == process.end()){ // Si l'id ne fait pas partis des ids enregistrés
+                std::cerr<<"[ROUTER] Not a real id : "<<id<<std::endl;
             }else{
-                if(! process.at(id)->isOnScreen()){
-                    std::cerr<<"[ROUTER] Message received from "<<id<<" but this program is not on screen..."<<std::endl;
-                }else{
-                    if(datagram[1] == (char)INSTR_IN_STOP){
-                        std::cout<<"[ROUTER] Instruction stop received from "<<id<<" ... Stopping process !"<<std::endl;
-                        process.at(id)->setOnScreen(false);
-                        this->ui->setOnScreen("None ...");
-                        this->is_running = false;
+                if(process.at(id)->getAddress() == sender && process.at(id)->getPort() == port){
+                    if(! process.at(id)->isActiv()){ // Si le programme a commis une faute et est banni
+                        std::cerr<<"[ROUTER] Message received from "<<id<<" but this program was banned..."<<std::endl;
                     }else{
-                        std::cout<<"[ROUTER] Instruction "<<datagram[1]<<" received"<<std::endl;
-                        this->screen->fromNetwork(datagram);
-                    }
-                } // Processus a l'ecran
-            }// Processus actif
-        }// Processus existant
+                        if(! process.at(id)->isOnScreen()){
+                            std::cerr<<"[ROUTER] Message received from "<<id<<" but this program is not on screen..."<<std::endl;
+                        }else{
+                            if(datagram[1] == (char)INSTR_IN_STOP){
+                                if(DEBUG)
+                                    std::cout<<"[ROUTER] Instruction stop received from "<<id<<" ... Stopping process !"<<std::endl;
+                                this->randomGame();
+                            }else{
+                                if(DEBUG)
+                                    std::cout<<"[ROUTER] Instruction "<<datagram[1]<<" received"<<std::endl;
+                                this->screen->fromNetwork(datagram);
+                            }
+                        } // Processus a l'ecran
+                    }// Processus actif
+                }else{
+                    std::cerr<<"[ROUTER] Wrong sender"<<std::endl;
+                }// Meme ip et addresse
+            }// Processus existant
+        }// Input controller
     } // Instruction != HELLO
 }
 
@@ -85,15 +100,14 @@ void Router::startProcess(int pid){
     }
 
     if(process.find(pid) == process.end()){ // Si l'id ne fait pas partis des ids enregistrés
-        std::cerr<<"[ROUTER] Cannot laynch : not a real id : "<<pid<<std::endl;
+        std::cerr<<"[ROUTER] Cannot launch : not a real id : "<<pid<<std::endl;
     }else{
         if(! process.at(pid)->isActiv()){ // Si le programme a commis une faute et est banni
             std::cerr<<"[ROUTER] Cannot launch "<<pid<<" program is banned..."<<std::endl;
 
         }else{
-            QByteArray dg = QByteArray(2,0);
+            QByteArray dg = QByteArray(1,0);
             dg[0] = INSTR_OUT_GO;
-            dg[1] = 0;
             std::cout<<"[ROUTER] Launching process "<<pid<<std::endl;
             process[pid]->setOnScreen(true);
             this->is_running = true;
@@ -108,9 +122,8 @@ void Router::stopProcess(){
     if(! this->is_running){
         std::cerr<<"[ROUTER] Cannot stop process : No process running..."<<std::endl;
     }else{
-        QByteArray dg = QByteArray(2,0);
+        QByteArray dg = QByteArray(1,0);
         dg[0] = INSTR_OUT_STOP;
-        dg[1] = 0;
         int pid = -1;
         for(std::map<int,Client*>::iterator it = this->process.begin(); it!= this->process.end(); ++it){
             if(it->second->isOnScreen())
@@ -139,3 +152,53 @@ int Router::getProcessFromName(QString name){
     return pid;
 }
 
+void Router::processInput(QByteArray datagram){
+    if(datagram[1] == INSTR_IN_INPUT){
+        if(datagram[2] == 255 || datagram[3] == 255){
+            if(DEBUG)
+                std::cout<<"[ROUTER] Stop received by user"<<std::endl;
+            this->randomGame();
+        }else{
+            if(this->is_running){
+                QByteArray dg = QByteArray(3,0);
+                dg[0] = INSTR_OUT_INPUT;
+                dg[1] = datagram[2];
+                dg[2] = datagram[3];
+                int pid = -1;
+                for(std::map<int,Client*>::iterator it = this->process.begin(); it!= this->process.end(); ++it){
+                    if(it->second->isOnScreen())
+                        pid = it->first;
+                }
+                if(DEBUG)
+                    std::cout<<"[ROUTER] Input received"<<std::endl;
+                if(pid == -1){
+                    std::cerr<<"[ROUTER] General failure ..."<<std::endl;
+                    exit(EXIT_FAILURE);
+                }
+                socket->writeDatagram(dg,process[pid]->getAddress(),process[pid]->getPort());
+            }else{
+                std::cout<<"[ROUTER] Input received but no process runnings"<<std::endl;
+            }
+        }
+
+    }else{
+        std::cerr<<"[ROUTER] Input Controller : Unexpected instruction"<<std::endl;
+    }
+}
+
+void Router::randomGame(){
+    int game = 0;
+    if(this->process.size() == 0){
+        std::cerr<<"[ROUTER] No process ..."<<std::endl;
+        return;
+    } else if(this->process.size() == 1){
+        game = this->process.begin()->first;
+    }else{
+        game = rand()%this->process.size()+1;
+        while(this->process.find(game)== this->process.end() && ! this->process.find(game)->second->isActiv()&& ! this->process.find(game)->second->isOnScreen())
+            game = rand()%this->process.size()+1;
+    }
+    this->stopProcess();
+    this->startProcess(game);
+
+}

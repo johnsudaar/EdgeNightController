@@ -79,3 +79,19 @@ void MainWindow::on_pb_cal_clicked()
 {
     this->cal->show();
 }
+
+void MainWindow::setPoints(int nb_points){
+    QString text = "Points : " + QString::number(nb_points);
+    this->ui->lbl_points->setText(text);
+}
+
+void MainWindow::setLength(int length){
+    QString text = "Length : " + QString::number(length);
+    this->ui->lbl_length->setText(text);
+}
+
+void MainWindow::on_pb_rand_clicked()
+{
+    this->router->randomGame();
+}
+

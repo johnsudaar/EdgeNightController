@@ -9,6 +9,7 @@
 #include <QObject>
 #include <QString>
 #include <iostream>
+#include <cstdlib>
 
 class MainWindow;
 class Screen;
@@ -21,11 +22,13 @@ public:
     void startProcess(int pid);
     int getProcessFromName(QString name);
     void stopProcess();
+    void randomGame();
 private:
     Screen* screen;
     std::map<int, Client*> process;
     QUdpSocket* socket;
     void processDatagram(QByteArray datagram, QHostAddress sender, quint16 port);
+    void processInput(QByteArray datagram);
     bool is_running;
     MainWindow *ui;
     unsigned short cur_id;

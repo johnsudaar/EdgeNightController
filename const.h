@@ -1,6 +1,8 @@
 #ifndef CONST_H
 #define CONST_H
 
+#define DEBUG true
+
 // ************************
 // * HARDWARE LIMITATIONS *
 // ************************
@@ -21,17 +23,19 @@
 #define INSTR_IN_LINE 0x4C
 #define INSTR_IN_RECT 0x44
 #define INSTR_IN_CIRCLE 0x43
-
+#define INSTR_IN_INPUT 0x49
 
 #define INSTR_OUT_ACK 0x41
 #define INSTR_OUT_GO 0x47
 #define INSTR_OUT_STOP 0x53
+#define INSTR_OUT_INPUT 0x49
 
 // ************************
 // *   DRAWING UTILITIES  *
 // ************************
 
-#define CIRCLE_RES 12
+#define CIRCLE_RES 1000
+#define LINE_RES 1000
 
 // ************************
 // *        MATH          *

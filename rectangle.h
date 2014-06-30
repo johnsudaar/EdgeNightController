@@ -2,6 +2,8 @@
 #define RECTANGLE_H
 
 #include "displayableobject.h"
+#include "line.h"
+#include "const.h"
 
 namespace Lol{
 
@@ -12,8 +14,10 @@ public:
     Rectangle(Point p1, Point p2);
     virtual std::vector<Point> getPoints();
 private:
-    Point p1;
-    Point p2;
+    Line l1;
+    Line l2;
+    Line l3;
+    Line l4;
 };
 }
 

@@ -11,9 +11,11 @@ Circle::Circle(Point center, unsigned short size){
 
 std::vector<Point> Circle::getPoints(){
     std::vector<Point> points;
-    double inc = 2*PI/CIRCLE_RES;
     unsigned short r = this->size/2;
-    for(int i = 0; i<CIRCLE_RES; i++){
+    int reso = this->size/CIRCLE_RES > 6 ? this->size/CIRCLE_RES : 6;
+    double inc = 2*PI/reso;
+
+    for(int i = 0; i<reso; i++){
         int x = cos(inc*i)*r + this->center.x;
         int y = sin(inc*i)*r + this->center.y;
         x = x < 0 ? 0 : x > MAX_X ? MAX_X : x; // Normalize x
@@ -21,5 +23,6 @@ std::vector<Point> Circle::getPoints(){
         points.push_back(Point(x,y,this->center.r, this->center.g, this->center.b));
     }
     points.push_back(points[0]); // Close the circle
+    points.push_back(points[1]); // Re-closing
     return points;
 }

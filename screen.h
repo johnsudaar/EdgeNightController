@@ -9,8 +9,6 @@
 #include "const.h"
 #include "mainwindow.h"
 
-//#include "lumax.h"
-
 #include <QUdpSocket>
 #include <iostream>
 #include <math.h>
@@ -45,8 +43,6 @@ private:
     Point p2;
     Point p3;
     Point p4;
-
-
 };
 
 #endif // SCREEN_H

@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QUdpSocket>
+#include "const.h"
 
 
 class Client

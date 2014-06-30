@@ -7,19 +7,32 @@ Rectangle::Rectangle()
 }
 
 Rectangle::Rectangle(Point p1, Point p2){
-    this->p1 = p1;
-    this->p2 = p2;
+    Point p3 = Point(p1.x, p2.y, p1.r,p1.g,p1.b);
+    Point p4 = Point(p2.x, p1.y, p1.r,p1.g,p1.b);
+    this->l1 = Line(p1,p3);
+    this->l2 = Line(p3,p2);
+    this->l3 = Line(p2,p4);
+    this->l4 = Line(p4,p1);
 }
 
 std::vector<Point> Rectangle::getPoints(){
     std::vector<Point> points = std::vector<Point>();
-    short startx = p1.x, starty = p1.y, endx = p2.x, endy=p2.y;
-    bool r = p1.r, g=p1.g, b=p1.b;
-    points.push_back(Point(startx,starty,r,g,b));
-    points.push_back(Point(endx, starty,r,g,b));
-    points.push_back(Point(endx, endy,r,g,b));
-    points.push_back(Point(startx, endy,r,g,b));
-    points.push_back(Point(startx,starty,r,g,b));
+    std::vector<Point> p_l = this->l1.getPoints();
+    for(std::vector<Point>::iterator it = p_l.begin(); it != p_l.end(); ++it){
+        points.push_back(*it);
+    }
+    p_l = this->l2.getPoints();
+    for(std::vector<Point>::iterator it = p_l.begin(); it != p_l.end(); ++it){
+        points.push_back(*it);
+    }
+    p_l = this->l3.getPoints();
+    for(std::vector<Point>::iterator it = p_l.begin(); it != p_l.end(); ++it){
+        points.push_back(*it);
+    }
+    p_l = this->l4.getPoints();
+    for(std::vector<Point>::iterator it = p_l.begin(); it != p_l.end(); ++it){
+        points.push_back(*it);
+    }
     return points;
 }
 
