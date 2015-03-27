@@ -1,9 +1,10 @@
 #include "screen.h"
 
-typedef struct
- {
-  unsigned short Ch1, Ch2, Ch3, Ch4, Ch5, Ch6, Ch7, Ch8, TTL;
- } TLumax_Point;
+#include "lumax.h"
+
+#include <unistd.h>
+
+#define HINSTANCE int
 
 TLumax_Point Lumax_Points[4000];
 
@@ -27,15 +28,15 @@ Screen::Screen(bool dac, MainWindow *ui){
     this->objects.reserve(20);
     bool dll_loaded = false;
     HINSTANCE DllHandle;
-    DllHandle = LoadLibrary("lumax.dll"); // open DLL
+    DllHandle = 1; //LoadLibrary("lumax.dll"); // open DLL
     if (DllHandle != NULL)
       { // DLL successfully opened -> get functions
-       fLumax_SendFrame = (tLumax_SendFrame)GetProcAddress(DllHandle, "Lumax_SendFrame");
-       fLumax_StopFrame = (tLumax_StopFrame)GetProcAddress(DllHandle, "Lumax_StopFrame");
-       fLumax_WaitForBuffer = (tLumax_WaitForBuffer)GetProcAddress(DllHandle, "Lumax_WaitForBuffer");
-       fLumax_GetPhysicalDevices = (tLumax_GetPhysicalDevices)GetProcAddress(DllHandle, "Lumax_GetPhysicalDevices");
-       fLumax_OpenDevice = (tLumax_OpenDevice)GetProcAddress(DllHandle, "Lumax_OpenDevice");
-       fLumax_CloseDevice = (tLumax_CloseDevice)GetProcAddress(DllHandle, "Lumax_CloseDevice");
+       fLumax_SendFrame = Lumax_SendFrame;
+       fLumax_StopFrame = Lumax_StopFrame;
+       fLumax_WaitForBuffer = Lumax_WaitForBuffer;
+       fLumax_GetPhysicalDevices = Lumax_GetPhysicalDevices;
+       fLumax_OpenDevice = Lumax_OpenDevice;
+       fLumax_CloseDevice = Lumax_CloseDevice;
        if (   (fLumax_SendFrame != NULL)
            && (fLumax_StopFrame != NULL)
            && (fLumax_WaitForBuffer != NULL)
@@ -68,12 +69,14 @@ void Screen::refresh(){
 }
 
 bool Screen::connectDAC(){
+    sleep(5);
     int nb_dac = fLumax_GetPhysicalDevices();
     if(nb_dac == 0){
         std::cerr<<"[SCREEN] No DAC connected ..."<<std::endl;
         return false;
     }
     std::cout<<"[SCREEN] "<<nb_dac<<" DAC connected !"<<std::endl;
+    sleep(2);
     this->dacHandle = fLumax_OpenDevice(1, 0);
     if(this->dacHandle == 0){
         std::cerr<<"[SCREEN] Cannot open DAC ..."<<std::endl;
@@ -84,7 +87,6 @@ bool Screen::connectDAC(){
 
     this->dac = true;
     return true;
-    return false;
 }
 
 void Screen::toDAC(std::vector<Point> points){
