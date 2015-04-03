@@ -13,7 +13,7 @@
 #include <iostream>
 #include <math.h>
 #undef UNICODE
-#include <windows.h>
+//#include <windows.h>
 
 class MainWindow;
 
@@ -26,23 +26,27 @@ public:
     void refresh();
     void fromNetwork(QByteArray datagram);
     void toDAC(std::vector<Point> points);
+    void clearFrame();
+    void sendTestPattern();
     bool connectDAC();
-    void setPoints(Point p1, Point p2, Point p3, Point p4);
+    void setParameters(int width, int height, int offset_x, int offset_y, int scan_speed);
     Point placePoint(Point p);
 
 private:
     unsigned short getUShort(QByteArray datagram, int offset);
     bool dac;
+    bool test_pattern;
     int dacHandle;
     std::vector<DisplayableObject*> objects;
     std::vector<Point> getPoints();
     Point getNormalizedPoint(Point p);
     Point addColor(Point base, QByteArray datagram, int offset);
     MainWindow *ui;
-    Point p1;
-    Point p2;
-    Point p3;
-    Point p4;
+    int width;
+    int height;
+    int offset_x;
+    int offset_y;
+    int scan_speed;
 };
 
 #endif // SCREEN_H

@@ -12,11 +12,12 @@ MainWindow::MainWindow(QWidget *parent) :
     this->screen = new Screen(false, this);
     this->router = new Router(this->screen, this);
     this->ui->gv_Visualizer->setBackgroundBrush(Qt::black);
+    this->ui->gv_Visualizer->setScene(new QGraphicsScene());
 
     this->drawLines(std::vector<Point>());
     this->cal = new calibrer(0,this->screen);
 
-    this->screen->setPoints(Point(0,0), Point(65535,0), Point(65535,65535), Point(0,65535));
+    this->screen->setParameters(65535,65535,0,0,10000);
 }
 
 MainWindow::~MainWindow()
@@ -50,26 +51,30 @@ void MainWindow::on_pb_stop_clicked()
 }
 
 void MainWindow::drawLines(std::vector<Point> points){
-    QGraphicsScene * scene = new QGraphicsScene(this);
-    QRect geo = QRect(0,0,65535,65535);
-    scene->setSceneRect(geo);
+
+    QGraphicsScene * scene = this->ui->gv_Visualizer->scene();
+    scene->clear();
+    QRect geo = this->ui->gv_Visualizer->rect();
     scene->setBackgroundBrush(Qt::black);
+    QPen pen;
     Point previous;
     for(std::vector<Point>::iterator it = points.begin(); it != points.end(); ++it){
         if(it == points.begin()){
             previous = *it;
         }else{
             int alpha = 255;
-            if(!(previous.r || previous.g || previous.b)){
-                alpha = 0;
+            if((previous.r || previous.g || previous.b)){
+                pen = QPen(QColor(previous.r?255:0,previous.g?255:0,previous.b?255:0,alpha));
+            }else{
+                pen = QPen(QColor(0,255,0,70));
+                pen.setStyle(Qt::DashDotDotLine);
             }
-            QPen pen = QPen(QColor(previous.r?255:0,previous.g?255:0,previous.b?255:0,alpha));
-            scene->addLine(previous.x,previous.y,(*it).x,(*it).y,pen);
+            scene->addLine(previous.x*geo.width()/65535,previous.y*geo.height()/65535,(*it).x*geo.width()/65535,(*it).y*geo.height()/65535,pen);
             previous = *it;
         }
     }
     this->ui->gv_Visualizer->setScene(scene);
-    this->ui->gv_Visualizer->fitInView(geo, Qt::KeepAspectRatio );
+    this->ui->gv_Visualizer->update();
 
 }
 
@@ -121,4 +126,10 @@ void MainWindow::on_checkBox_clicked()
 
 void MainWindow::inputConnected(){
     this->ui->lbl_input->setText("Input Controller : connected");
+}
+
+void MainWindow::on_pb_test_pattern_clicked()
+{
+    this->router->stopProcess();
+    this->screen->sendTestPattern();
 }

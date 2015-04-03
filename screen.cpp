@@ -1,9 +1,10 @@
 #include "screen.h"
 
-typedef struct
- {
-  unsigned short Ch1, Ch2, Ch3, Ch4, Ch5, Ch6, Ch7, Ch8, TTL;
- } TLumax_Point;
+#include "lumax.h"
+
+#include <unistd.h>
+
+#define HINSTANCE int
 
 TLumax_Point Lumax_Points[4000];
 
@@ -22,6 +23,7 @@ tLumax_OpenDevice fLumax_OpenDevice;
 tLumax_CloseDevice fLumax_CloseDevice;
 
 Screen::Screen(bool dac, MainWindow *ui){
+    this->test_pattern =  false;
     this->dac = dac;
     this->ui = ui;
     this->objects.reserve(20);
@@ -30,12 +32,12 @@ Screen::Screen(bool dac, MainWindow *ui){
     DllHandle = LoadLibrary("lumax.dll"); // open DLL
     if (DllHandle != NULL)
       { // DLL successfully opened -> get functions
-       fLumax_SendFrame = (tLumax_SendFrame)GetProcAddress(DllHandle, "Lumax_SendFrame");
-       fLumax_StopFrame = (tLumax_StopFrame)GetProcAddress(DllHandle, "Lumax_StopFrame");
-       fLumax_WaitForBuffer = (tLumax_WaitForBuffer)GetProcAddress(DllHandle, "Lumax_WaitForBuffer");
-       fLumax_GetPhysicalDevices = (tLumax_GetPhysicalDevices)GetProcAddress(DllHandle, "Lumax_GetPhysicalDevices");
-       fLumax_OpenDevice = (tLumax_OpenDevice)GetProcAddress(DllHandle, "Lumax_OpenDevice");
-       fLumax_CloseDevice = (tLumax_CloseDevice)GetProcAddress(DllHandle, "Lumax_CloseDevice");
+       fLumax_SendFrame = Lumax_SendFrame;
+       fLumax_StopFrame = Lumax_StopFrame;
+       fLumax_WaitForBuffer = Lumax_WaitForBuffer;
+       fLumax_GetPhysicalDevices = Lumax_GetPhysicalDevices;
+       fLumax_OpenDevice = Lumax_OpenDevice;
+       fLumax_CloseDevice = Lumax_CloseDevice;
        if (   (fLumax_SendFrame != NULL)
            && (fLumax_StopFrame != NULL)
            && (fLumax_WaitForBuffer != NULL)
@@ -54,10 +56,12 @@ Screen::Screen(bool dac, MainWindow *ui){
 }
 
 void Screen::addObject(DisplayableObject* obj){
+    this->test_pattern = false;
     this->objects.push_back(obj);
 }
 
 void Screen::refresh(){
+    qDebug()<<this->scan_speed;
     std::vector<Point> points = this->getPoints();
     this->ui->addFrame(this->objects.size());
 
@@ -68,12 +72,14 @@ void Screen::refresh(){
 }
 
 bool Screen::connectDAC(){
+    sleep(5);
     int nb_dac = fLumax_GetPhysicalDevices();
     if(nb_dac == 0){
         std::cerr<<"[SCREEN] No DAC connected ..."<<std::endl;
         return false;
     }
     std::cout<<"[SCREEN] "<<nb_dac<<" DAC connected !"<<std::endl;
+    sleep(2);
     this->dacHandle = fLumax_OpenDevice(1, 0);
     if(this->dacHandle == 0){
         std::cerr<<"[SCREEN] Cannot open DAC ..."<<std::endl;
@@ -84,7 +90,6 @@ bool Screen::connectDAC(){
 
     this->dac = true;
     return true;
-    return false;
 }
 
 void Screen::toDAC(std::vector<Point> points){
@@ -92,14 +97,14 @@ void Screen::toDAC(std::vector<Point> points){
         TLumax_Point l_points[points.size()];
         int i = 0;
         for(std::vector<Point>::iterator it = points.begin(); it != points.end(); ++it){
-            l_points[i].Ch1 = (65535 - (*it).x)/3;
-            l_points[i].Ch2 = (65535 - (*it).y)/3;
+            l_points[i].Ch1 = (65535 - (*it).x);
+            l_points[i].Ch2 = (65535 - (*it).y);
             l_points[i].Ch3 = (*it).r ? 65535 : 0;
             l_points[i].Ch4 = (*it).g ? 65535 : 0;
             l_points[i].Ch5 = (*it).b ? 65535 : 0;
             i++;
         }
-        fLumax_SendFrame(this->dacHandle,l_points,points.size(),1000,10000,NULL);
+        fLumax_SendFrame(this->dacHandle,l_points,points.size(),1000,this->scan_speed,NULL);
 
     }else{
         std::cerr<<"[SCREEN] DAC not connected..."<<std::endl;
@@ -129,11 +134,11 @@ std::vector<Point> Screen::getPoints(){
         end.r = false;
         end.g = false;
         end.b = false;
-        points.push_back(this->getNormalizedPoint(start));
+        points.push_back(this->placePoint(this->getNormalizedPoint(start)));
         for(int i = 0; i<cur.size(); i++){
-            points.push_back(/*this->placePoint(*/this->getNormalizedPoint(cur[i])/*)*/);
+            points.push_back(this->placePoint(this->getNormalizedPoint(cur[i])));
         }
-        points.push_back(this->getNormalizedPoint(end));
+        points.push_back(this->placePoint(this->getNormalizedPoint(end)));
     }
 
     int length = 0;
@@ -207,7 +212,7 @@ void Screen::fromNetwork(QByteArray datagram){
             end  = Point(end_x, end_y);
             end = this->addColor(end,datagram,10);
             start = this->addColor(start,datagram,10);
-            this->addObject(new Lol::Rectangle(start,end));
+            this->addObject(new Rectangle(start,end));
             break;
         case INSTR_IN_CIRCLE:
             start_x = this->getUShort(datagram,2);
@@ -222,57 +227,36 @@ void Screen::fromNetwork(QByteArray datagram){
         }
     }
 }
-void Screen::setPoints(Point p1, Point p2, Point p3, Point p4){
-    this->p1 = p1;
-    this->p2 = p2;
-    this->p3 = p3;
-    this->p4 = p4;
+void Screen::setParameters(int width, int height, int offset_x, int offset_y, int scan_speed){
+    this->width = width;
+    this->height = height;
+    this->offset_x = offset_x;
+    this->offset_y = offset_y;
+    this->scan_speed = scan_speed;
+    if(this->test_pattern){
+        this->sendTestPattern();
+    }
 }
 
-/*void Screen::clearFrame(){
+void Screen::clearFrame(){
+    this->objects.clear();
+    this->refresh();
+}
 
-}*/
+
 Point Screen::placePoint(Point p){
-    double d1 = 0;
-    double d2 = 0;
-    double d3 = 0;
-    double d4 = 0;
-    // P1 : (0, 0)
-    // P2 : (65535, 0);
-    // P3 : (65535, 65535)
-    // P4 : (0, 65535)
-    d1 = sqrt(pow(p.x,2)+pow(p.y,2));
-    d2 = sqrt(pow(65535 - p.x,2)+ pow(p.y,2));
-    d3 = sqrt(pow(65535 - p.x,2)+ pow(65535-p.y,2));
-    d4 = sqrt(pow(p.x,2)+ pow(65535-p.y,2));
-    if(d1 == 0)
-        return this->p1;
-    if(d2 == 0)
-        return this->p2;
-    if(d3 == 0)
-        return this->p3;
-    if(d4 == 0)
-        return this->p4;
+    Point n;
+    n.x = p.x * this->width / 65535 + this->offset_x;
+    n.y = p.y * this->height / 65535 + this->offset_y;
+    n.r = p.r;
+    n.g = p.g;
+    n.b = p.b;
+    return n;
+}
 
-    d1 = 1/d1;
-    d2 = 1/d2;
-    d3 = 1/d3;
-    d4 = 1/d4;
-
-    double sum = d1 + d2 + d3 + d4;
-
-    d1 = d1/sum;
-    d2 = d2/sum;
-    d3 = d3/sum;
-    d4 = d4/sum;
-
-    //unsigned short r_x , r_y;
-    unsigned short r_x = (double)p1.x*d1 + (double)p2.x*d2 + (double)p3.x*d3 + (double)p4.x*d4;
-    unsigned short r_y = (double)p1.y*d1 + (double)p2.y*d2 + (double)p3.y*d3 + (double)p4.y*d4;
-    r_x = r_x < 65535 ? r_x : 65535;
-    r_y = r_y < 65535 ? r_y : 65535;
-
-    Point r_p = Point(r_x,r_y,p.r,p.g,p.b);
-
-    return r_p;
+void Screen::sendTestPattern(){
+    this->clearFrame();
+    this->addObject(new Rectangle(Point(0,0,1,1,1),Point(65535,65535,1,1,1)));
+    this->test_pattern = true;
+    this->refresh();
 }

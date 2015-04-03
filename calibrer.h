@@ -23,7 +23,8 @@ private:
     Ui::calibrer *ui;
     Screen *screen;
 private slots:
-    void slide_change(int val);
+    void size_change(int val);
+    void offset_change(int val);
     void on_pb_close_clicked();
 };
 

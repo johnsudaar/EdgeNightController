@@ -7,6 +7,8 @@
 QT       += core gui
 QT       += network
 
+#LIBS+=-L. -L../release/build/i386 -Wl,-rpath /usr/local/lib -llumax -lftd2xx -lpthread -ldl
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = EdgeNightLaser
@@ -35,7 +37,8 @@ HEADERS  += mainwindow.h \
     const.h \
     client.h \
     router.h \
-    calibrer.h
+    calibrer.h \
+    lumax.h
 
 FORMS    += mainwindow.ui \
             calibrer.ui

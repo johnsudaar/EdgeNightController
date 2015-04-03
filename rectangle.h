@@ -5,7 +5,6 @@
 #include "line.h"
 #include "const.h"
 
-namespace Lol{
 
 class Rectangle : public virtual DisplayableObject
 {
@@ -19,6 +18,5 @@ private:
     Line l3;
     Line l4;
 };
-}
 
 #endif // RECTANGLE_H

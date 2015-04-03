@@ -9,6 +9,7 @@
 #include "client.h"
 #include "calibrer.h"
 #include "const.h"
+#include "rectangle.h"
 
 
 
@@ -43,6 +44,8 @@ private slots:
     void on_pb_rand_clicked();
     void server_timer();
     void on_checkBox_clicked();
+
+    void on_pb_test_pattern_clicked();
 
 private:
     Ui::MainWindow *ui;

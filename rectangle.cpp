@@ -1,7 +1,5 @@
 #include "rectangle.h"
 
-using namespace Lol;
-
 Rectangle::Rectangle()
 {
 }

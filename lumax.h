@@ -1,6 +1,12 @@
 #ifndef LUMAX_H
 #define LUMAX_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define __stdcall
+
 typedef struct
  {
   unsigned short Ch1, Ch2, Ch3, Ch4, Ch5, Ch6, Ch7, Ch8, TTL;
@@ -17,5 +23,9 @@ int Lumax_OpenDevice(int PhysicalDevice, int Channel);
 int Lumax_GetPhysicalDevices(void);
 int Lumax_WaitForBuffer(int Handle, int Timeout, int *TimeToWait, int *BufferChanged);
 int Lumax_SendFrame(int Handle, TLumax_Point *Points, int NumOfPoints, int ScanSpeed, int UpdateMode, int *TimeToWait);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // LUMAX_H
