@@ -1,5 +1,7 @@
 #include "rectangle.h"
 
+using namespace laser;
+
 Rectangle::Rectangle()
 {
 }

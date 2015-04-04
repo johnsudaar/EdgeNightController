@@ -35,7 +35,7 @@
 // ************************
 
 #define CIRCLE_RES 1000
-#define LINE_RES 1000
+#define LINE_RES 2000
 
 // ************************
 // *        MATH          *

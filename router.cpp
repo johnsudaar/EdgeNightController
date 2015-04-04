@@ -5,7 +5,7 @@ Router::Router(Screen* screen, MainWindow *ui)
     this->process = std::map<int,Client*>();
     socket = new QUdpSocket();
     socket->bind(QHostAddress::Any, LISTEN_PORT);
-    std::cout<<"[ROUTER] Server listenning ..." <<std::endl;
+    std::cout<<"[ROUTER] Server listening port " << LISTEN_PORT <<std::endl;
     connect(socket, SIGNAL(readyRead()),this, SLOT(readDatagram()));
     this->is_running = false;
     this->ui = ui;

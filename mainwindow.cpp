@@ -17,7 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
     this->drawLines(std::vector<Point>());
     this->cal = new calibrer(0,this->screen);
 
-    this->screen->setParameters(65535,65535,0,0,10000);
+    this->screen->setParameters(0,0,0,0,10000);
 }
 
 MainWindow::~MainWindow()
@@ -48,6 +48,7 @@ void MainWindow::on_pb_launch_clicked()
 void MainWindow::on_pb_stop_clicked()
 {
     router->stopProcess();
+    screen->clearFrame();
 }
 
 void MainWindow::drawLines(std::vector<Point> points){
@@ -86,6 +87,7 @@ void MainWindow::on_pb_dac_clicked()
 void MainWindow::on_pb_cal_clicked()
 {
     this->cal->show();
+    this->cal->setFocus();
 }
 
 void MainWindow::setPoints(int nb_points){

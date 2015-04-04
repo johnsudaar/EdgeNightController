@@ -13,7 +13,7 @@
 #include <iostream>
 #include <math.h>
 #undef UNICODE
-//#include <windows.h>
+#include <windows.h>
 
 class MainWindow;
 

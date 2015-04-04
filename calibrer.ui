@@ -32,7 +32,7 @@
         <number>65535</number>
        </property>
        <property name="value">
-        <number>65535</number>
+        <number>0</number>
        </property>
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -52,7 +52,7 @@
         <number>65535</number>
        </property>
        <property name="value">
-        <number>65535</number>
+        <number>0</number>
        </property>
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -103,13 +103,13 @@
      <item row="4" column="1">
       <widget class="QSlider" name="hs_scan_speed">
        <property name="minimum">
-        <number>2000</number>
+        <number>500</number>
        </property>
        <property name="maximum">
-        <number>20000</number>
+        <number>4000</number>
        </property>
        <property name="value">
-        <number>10000</number>
+        <number>1000</number>
        </property>
        <property name="orientation">
         <enum>Qt::Horizontal</enum>

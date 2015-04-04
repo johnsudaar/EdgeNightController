@@ -32,12 +32,12 @@ Screen::Screen(bool dac, MainWindow *ui){
     DllHandle = LoadLibrary("lumax.dll"); // open DLL
     if (DllHandle != NULL)
       { // DLL successfully opened -> get functions
-       fLumax_SendFrame = Lumax_SendFrame;
-       fLumax_StopFrame = Lumax_StopFrame;
-       fLumax_WaitForBuffer = Lumax_WaitForBuffer;
-       fLumax_GetPhysicalDevices = Lumax_GetPhysicalDevices;
-       fLumax_OpenDevice = Lumax_OpenDevice;
-       fLumax_CloseDevice = Lumax_CloseDevice;
+       fLumax_SendFrame = (tLumax_SendFrame)GetProcAddress(DllHandle, "Lumax_SendFrame");
+       fLumax_StopFrame = (tLumax_StopFrame)GetProcAddress(DllHandle, "Lumax_StopFrame");
+       fLumax_WaitForBuffer = (tLumax_WaitForBuffer)GetProcAddress(DllHandle, "Lumax_WaitForBuffer");
+       fLumax_GetPhysicalDevices = (tLumax_GetPhysicalDevices)GetProcAddress(DllHandle, "Lumax_GetPhysicalDevices");
+       fLumax_OpenDevice = (tLumax_OpenDevice)GetProcAddress(DllHandle, "Lumax_OpenDevice");
+       fLumax_CloseDevice = (tLumax_CloseDevice)GetProcAddress(DllHandle, "Lumax_CloseDevice");
        if (   (fLumax_SendFrame != NULL)
            && (fLumax_StopFrame != NULL)
            && (fLumax_WaitForBuffer != NULL)
@@ -48,6 +48,7 @@ Screen::Screen(bool dac, MainWindow *ui){
            dll_loaded = true;
        }
     }
+
     if(dll_loaded){
         std::cout<<"[SCREEN] Librairie chargée !"<<std::endl;
     }else{
@@ -61,7 +62,6 @@ void Screen::addObject(DisplayableObject* obj){
 }
 
 void Screen::refresh(){
-    qDebug()<<this->scan_speed;
     std::vector<Point> points = this->getPoints();
     this->ui->addFrame(this->objects.size());
 
@@ -72,14 +72,14 @@ void Screen::refresh(){
 }
 
 bool Screen::connectDAC(){
-    sleep(5);
+    //sleep(5);
     int nb_dac = fLumax_GetPhysicalDevices();
     if(nb_dac == 0){
         std::cerr<<"[SCREEN] No DAC connected ..."<<std::endl;
         return false;
     }
     std::cout<<"[SCREEN] "<<nb_dac<<" DAC connected !"<<std::endl;
-    sleep(2);
+    //sleep(2);
     this->dacHandle = fLumax_OpenDevice(1, 0);
     if(this->dacHandle == 0){
         std::cerr<<"[SCREEN] Cannot open DAC ..."<<std::endl;
@@ -104,7 +104,7 @@ void Screen::toDAC(std::vector<Point> points){
             l_points[i].Ch5 = (*it).b ? 65535 : 0;
             i++;
         }
-        fLumax_SendFrame(this->dacHandle,l_points,points.size(),1000,this->scan_speed,NULL);
+        fLumax_SendFrame(this->dacHandle,l_points,points.size(),this->scan_speed,0,NULL);
 
     }else{
         std::cerr<<"[SCREEN] DAC not connected..."<<std::endl;
@@ -212,7 +212,7 @@ void Screen::fromNetwork(QByteArray datagram){
             end  = Point(end_x, end_y);
             end = this->addColor(end,datagram,10);
             start = this->addColor(start,datagram,10);
-            this->addObject(new Rectangle(start,end));
+            this->addObject(new laser::Rectangle(start,end));
             break;
         case INSTR_IN_CIRCLE:
             start_x = this->getUShort(datagram,2);
@@ -256,7 +256,7 @@ Point Screen::placePoint(Point p){
 
 void Screen::sendTestPattern(){
     this->clearFrame();
-    this->addObject(new Rectangle(Point(0,0,1,1,1),Point(65535,65535,1,1,1)));
+    this->addObject(new laser::Rectangle(Point(0,0,1,1,1),Point(65535,65535,1,1,1)));
     this->test_pattern = true;
     this->refresh();
 }
