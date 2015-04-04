@@ -13,7 +13,9 @@
 #include <iostream>
 #include <math.h>
 #undef UNICODE
+#ifndef LINUX
 #include <windows.h>
+#endif
 
 class MainWindow;
 
@@ -29,8 +31,8 @@ public:
     void clearFrame();
     void sendTestPattern();
     bool connectDAC();
-    void setParameters(int width, int height, int offset_x, int offset_y, int scan_speed);
     Point placePoint(Point p);
+    void updateTestPattern();
 
 private:
     unsigned short getUShort(QByteArray datagram, int offset);
@@ -42,11 +44,6 @@ private:
     Point getNormalizedPoint(Point p);
     Point addColor(Point base, QByteArray datagram, int offset);
     MainWindow *ui;
-    int width;
-    int height;
-    int offset_x;
-    int offset_y;
-    int scan_speed;
 };
 
 #endif // SCREEN_H

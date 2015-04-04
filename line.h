@@ -3,9 +3,10 @@
 
 #include <math.h>
 
+#include "const.h"
+#include "parameters.h"
 #include "displayableobject.h"
 #include "point.h"
-#include "const.h"
 
 class Line : public virtual DisplayableObject
 {

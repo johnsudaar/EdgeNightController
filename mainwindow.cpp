@@ -13,11 +13,10 @@ MainWindow::MainWindow(QWidget *parent) :
     this->router = new Router(this->screen, this);
     this->ui->gv_Visualizer->setBackgroundBrush(Qt::black);
     this->ui->gv_Visualizer->setScene(new QGraphicsScene());
-
+    Parameters::get()->setScreen(this->screen);
     this->drawLines(std::vector<Point>());
     this->cal = new calibrer(0,this->screen);
 
-    this->screen->setParameters(0,0,0,0,10000);
 }
 
 MainWindow::~MainWindow()

@@ -29,6 +29,7 @@ Screen::Screen(bool dac, MainWindow *ui){
     this->objects.reserve(20);
     bool dll_loaded = false;
     HINSTANCE DllHandle;
+    #ifndef LINUX
     DllHandle = LoadLibrary("lumax.dll"); // open DLL
     if (DllHandle != NULL)
       { // DLL successfully opened -> get functions
@@ -48,6 +49,7 @@ Screen::Screen(bool dac, MainWindow *ui){
            dll_loaded = true;
        }
     }
+   #endif
 
     if(dll_loaded){
         std::cout<<"[SCREEN] Librairie chargée !"<<std::endl;
@@ -104,7 +106,7 @@ void Screen::toDAC(std::vector<Point> points){
             l_points[i].Ch5 = (*it).b ? 65535 : 0;
             i++;
         }
-        fLumax_SendFrame(this->dacHandle,l_points,points.size(),this->scan_speed,0,NULL);
+        fLumax_SendFrame(this->dacHandle,l_points,points.size(),Parameters::get()->getScanSpeed(),0,NULL);
 
     }else{
         std::cerr<<"[SCREEN] DAC not connected..."<<std::endl;
@@ -227,16 +229,6 @@ void Screen::fromNetwork(QByteArray datagram){
         }
     }
 }
-void Screen::setParameters(int width, int height, int offset_x, int offset_y, int scan_speed){
-    this->width = width;
-    this->height = height;
-    this->offset_x = offset_x;
-    this->offset_y = offset_y;
-    this->scan_speed = scan_speed;
-    if(this->test_pattern){
-        this->sendTestPattern();
-    }
-}
 
 void Screen::clearFrame(){
     this->objects.clear();
@@ -246,12 +238,18 @@ void Screen::clearFrame(){
 
 Point Screen::placePoint(Point p){
     Point n;
-    n.x = p.x * this->width / 65535 + this->offset_x;
-    n.y = p.y * this->height / 65535 + this->offset_y;
+    n.x = p.x * Parameters::get()->getWidth() / 65535 + Parameters::get()->getOffsetX();
+    n.y = p.y * Parameters::get()->getHeight() / 65535 + Parameters::get()->getOffsetY();
     n.r = p.r;
     n.g = p.g;
     n.b = p.b;
     return n;
+}
+
+void Screen::updateTestPattern(){
+    if(this->test_pattern){
+        this->sendTestPattern();
+    }
 }
 
 void Screen::sendTestPattern(){

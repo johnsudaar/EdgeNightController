@@ -12,7 +12,7 @@ Circle::Circle(Point center, unsigned short size){
 std::vector<Point> Circle::getPoints(){
     std::vector<Point> points;
     unsigned short r = this->size/2;
-    int reso = this->size/CIRCLE_RES > 6 ? this->size/CIRCLE_RES : 6;
+    int reso = this->size/Parameters::get()->getCircleRes() > 6 ? this->size/Parameters::get()->getCircleRes() : 6;
     double inc = 2*PI/reso;
 
     for(int i = 0; i<reso; i++){

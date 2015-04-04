@@ -27,7 +27,8 @@ SOURCES += main.cpp\
     rectangle.cpp \
     client.cpp \
     router.cpp \
-    calibrer.cpp
+    calibrer.cpp \
+    parameters.cpp
 
 HEADERS  += mainwindow.h \
     displayableobject.h \
@@ -40,7 +41,8 @@ HEADERS  += mainwindow.h \
     client.h \
     router.h \
     calibrer.h \
-    lumax.h
+    lumax.h \
+    parameters.h
 
 FORMS    += mainwindow.ui \
             calibrer.ui

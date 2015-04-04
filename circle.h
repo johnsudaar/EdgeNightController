@@ -3,7 +3,10 @@
 
 #include "displayableobject.h"
 #include "const.h"
+#include "parameters.h"
+#include "line.h"
 #include <cmath>
+
 
 class Circle : public virtual DisplayableObject
 {

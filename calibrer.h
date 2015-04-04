@@ -2,8 +2,7 @@
 #define CALIBRER_H
 
 #include <QDialog>
-#include "point.h"
-#include "screen.h"
+#include "parameters.h"
 
 class Screen;
 
@@ -22,9 +21,11 @@ public:
 private:
     Ui::calibrer *ui;
     Screen *screen;
+    void update();
 private slots:
     void size_change(int val);
     void offset_change(int val);
+    void other_change(int val);
     void on_pb_close_clicked();
 };
 

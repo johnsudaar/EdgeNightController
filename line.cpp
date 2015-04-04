@@ -12,7 +12,7 @@ Line::Line(Point start, Point end){
 std::vector<Point> Line::getPoints(){
     double diff_x = (this->end.x - this->start.x);
     double diff_y = (this->end.y - this->start.y);
-    int delta = sqrt(pow(diff_x,2)+pow(diff_y,2))/LINE_RES;
+    int delta = sqrt(pow(diff_x,2)+pow(diff_y,2))/Parameters::get()->getLineRes();
     delta = delta > 2 ? delta : 2;
     this->end.r = this->start.r;
     this->end.g = this->start.g;

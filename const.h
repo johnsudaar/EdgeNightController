@@ -2,6 +2,7 @@
 #define CONST_H
 
 #define DEBUG false
+//#define LINUX
 
 // ************************
 // * HARDWARE LIMITATIONS *
@@ -16,6 +17,7 @@
 // ************************
 
 #define LISTEN_PORT 4242
+
 #define INSTR_IN_HELLO 0x48
 #define INSTR_IN_STOP 0x53
 
@@ -29,13 +31,6 @@
 #define INSTR_OUT_GO 0x47
 #define INSTR_OUT_STOP 0x53
 #define INSTR_OUT_INPUT 0x49
-
-// ************************
-// *   DRAWING UTILITIES  *
-// ************************
-
-#define CIRCLE_RES 1000
-#define LINE_RES 2000
 
 // ************************
 // *        MATH          *
