@@ -3,6 +3,8 @@
 
 #include <QDialog>
 #include "parameters.h"
+#include <QSettings>
+#include <QFile>
 
 class Screen;
 
@@ -19,14 +21,19 @@ public:
     ~calibrer();
 
 private:
+    bool loading;
     Ui::calibrer *ui;
     Screen *screen;
     void update();
+    void saveSettings();
+    void loadSettings();
 private slots:
     void size_change(int val);
     void offset_change(int val);
     void other_change(int val);
     void on_pb_close_clicked();
+    void on_pb_save_clicked();
+    void on_pb_load_clicked();
 };
 
 #endif // CALIBRER_H
