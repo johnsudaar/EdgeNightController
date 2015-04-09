@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>484</width>
-    <height>222</height>
+    <height>224</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -180,7 +180,7 @@
         <number>750</number>
        </property>
        <property name="maximum">
-        <number>30000</number>
+        <number>70000</number>
        </property>
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
